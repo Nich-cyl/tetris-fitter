@@ -1,5 +1,6 @@
 import pyglet
 from pyglet import shapes
+import generate
 
 win = pyglet.window.Window(960, 540)
 
@@ -40,7 +41,7 @@ def on_draw():
     grid_batch.draw()
 
 
-
+generate.print_block(1,(200,430),increment,tiles,tile_batch)
 draw_grids(grid_len)
 #a = input('wait')
 pyglet.app.run()
