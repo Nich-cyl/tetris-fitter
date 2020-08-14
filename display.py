@@ -1,3 +1,5 @@
+"""RETURNS PYGLET OBJECTS TO BE DRAWN FROM INPUT DATA"""
+
 from pyglet import shapes
 
 

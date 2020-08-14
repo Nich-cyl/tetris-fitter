@@ -1,3 +1,5 @@
+"""MAIN PROCESS"""
+
 import pyglet
 from pyglet.window import key
 import generate

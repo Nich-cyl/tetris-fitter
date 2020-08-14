@@ -1,7 +1,7 @@
 """GENERATES PROBLEM & SOLUTION BOARDS"""
 
 import pyglet
-from random import randrange
+from random import choice
 
 """(0,0) is in top left corner; +ve x = right; +ve y = down"""
 I0 = ((1, 0), (2, 0), (3, 0))
@@ -24,9 +24,7 @@ Z2 = ((1, 0), (1, -1), (0, 1))  # -ve y 1,-1
 S1 = ((1, 0), (0, 1), (-1, 1))  # -ve x -1,1
 S2 = ((0, 1), (1, 1), (1, 2))
 
-blocks = {1: T2, 2: T3, 3: J2, 4: S1,  # -ve x
-          14: I0, 15: I1, 16: O1, 17: T1, 5: T4, 6: L1, 7: L2, 8: L4, 9: J1, 10: J3, 11: J4, 12: Z1, 13: S2,
-          18: L3, 19: Z2}  # -ve y
+blocks = [I0, I1, O1, T1, T2, T3, T4, L1, L2, L3, L4, J1, J2, J3, J4, Z1, Z2, S1, S2]
 
 
 def print_block(entry_no, origin, increment, holding_arr, batch):
@@ -55,8 +53,7 @@ def gen(size):
             if prbmat[i][j] == 0:
                 tried = 0
                 while tried <= 1:
-                    index = randrange(1, 20)
-                    test_block = blocks[index]
+                    test_block = choice(blocks)
                     try:
                         fit = True
                         for tile in test_block:
