@@ -74,7 +74,7 @@ def gen(size):
                             tried = 3
                             tile_no += 1
                     except IndexError:
-                        print('Block out of range. Oh well.')
+                        pass
                     tried += 1
     return [prbmat, solmat]
 
