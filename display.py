@@ -4,7 +4,7 @@ from pyglet import shapes
 
 
 def color_gen(seed):
-    return (seed * 107 + 10) % 256, (seed * 427 + 100) % 256, (seed * 97 + 194) % 256
+    return (seed * 72345) % 256, (seed * 212351) % 256, (seed * 1235613) % 256
 
 
 def draw_grids(grid_length, batch):
