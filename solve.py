@@ -73,8 +73,26 @@ def is_valid_merge(mat, color1, color2):
     return True if mat_extended.count(color1) + mat_extended.count(color2) <= 4 else False
 
 
+@wrapper_for_each_in_grid
+def merge_colors_inner(mat, i, j, colors):
+    """takes (mat, color1, color2), returns corrected mat w/ color2s replaced by color1s"""
+    return colors[0] if mat[i][j] == colors[1] else mat[i][j]
+
+
+def merge_colors(prbmat, solmat, color1, color2):
+    """merges two colour groups. returns corrected prbmat & solmat"""
+    prbmat = merge_colors_inner(prbmat, color1, color2)
+    prbmat_extended = [item for sublist in prbmat for item in sublist]
+    if prbmat_extended.count(color1) == 4:
+        coords = [[i,j] for i in range(len(prbmat)) for j in range(len(prbmat)) if prbmat[i][j] == color1]
+        for tile in coords:
+            prbmat[tile[0]][tile[1]] = 0
+            solmat[tile[0]][tile[1]] = color1
+    return [prbmat, solmat]
+
+
 def update_prox(mat):
-    """gives 'connectivity' of each tile, prox1 shows neighbouring tiles"""
+    """returns 'connectivity' of each tile, prox1 shows neighbouring tiles"""
     prox1 = neighbour_count(mat)
     prox2 = sum_surrounding(prox1)
     prox3 = sum_surrounding(prox2)
@@ -82,6 +100,7 @@ def update_prox(mat):
 
 
 def choose_loneliest(mat, i, j, prox1, prox2, prox3):
+    """returns least 'connected' neighbour of tile, or None if all equally connected"""
     if mat[i][j] == 0:
         return None
     valids = valid_neighbours(mat, i, j)
@@ -101,9 +120,9 @@ def choose_loneliest(mat, i, j, prox1, prox2, prox3):
 
 def sol(prbmat):
     """groups tiles in 4s"""
-    cmpmat = assign_colors(prbmat, (a for a in range(1, len(prbmat) ** 2 + 1)))
+    prbmat = assign_colors(prbmat, (a for a in range(1, len(prbmat) ** 2 + 1)))
     [prox1, prox2, prox3] = update_prox(prbmat)
-    return cmpmat
+    return prbmat
 
 
 if __name__ == '__main__':
@@ -127,3 +146,11 @@ if __name__ == '__main__':
     [print(i) for i in a]
     print()
     [print(f'{i}, {j}: {choose_loneliest(a,i,j,b,c,d)}') for i in range(4) for j in range(4)]
+    print()
+
+    f = [[1,1,3],[0,0,3],[2,2,0]]
+    g = [[0,0,0],[0,0,0],[0,0,0]]
+    [f, g] = merge_colors(f, g, 1, 3)
+    [print(i) for i in f]
+    print()
+    [print(i) for i in g]
