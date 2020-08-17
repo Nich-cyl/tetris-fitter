@@ -56,7 +56,7 @@ def sum_surrounding(mat, i2, j2, i, j, holder, args):
 def neighbour_count(mat, i2, j2, i, j, holder, args):
     """gives number of non-zero neighbours"""
     """takes (mat)"""
-    return holder + (1 if mat[i][j] != 0 and mat[i2][j2] != 0 else 0)
+    return holder + (1 if mat[i][j] != 0 and mat[i2][j2] != 0 and mat[i][j] != mat[i2][j2] else 0)
 
 
 @wrapper_for_each_in_grid
@@ -79,16 +79,19 @@ def merge_colors_inner(mat, i, j, colors):
     return colors[0] if mat[i][j] == colors[1] else mat[i][j]
 
 
-def merge_colors(prbmat, solmat, color1, color2):
-    """merges two colour groups. returns corrected prbmat & solmat"""
+def merge_colors(prbmat, cmpmat, color1, color2):
+    """merges two colour groups. returns corrected prbmat & cmpmat"""
     prbmat = merge_colors_inner(prbmat, color1, color2)
     prbmat_extended = [item for sublist in prbmat for item in sublist]
+    color2_coords = [[i, j] for i in range(len(prbmat)) for j in range(len(prbmat)) if prbmat[i][j] == color2]
+    for tile in color2_coords:
+        prbmat[tile[0]][tile[1]] = color1
     if prbmat_extended.count(color1) == 4:
-        coords = [[i,j] for i in range(len(prbmat)) for j in range(len(prbmat)) if prbmat[i][j] == color1]
-        for tile in coords:
+        color1_coords = [[i,j] for i in range(len(prbmat)) for j in range(len(prbmat)) if prbmat[i][j] == color1]
+        for tile in color1_coords:
             prbmat[tile[0]][tile[1]] = 0
-            solmat[tile[0]][tile[1]] = color1
-    return [prbmat, solmat]
+            cmpmat[tile[0]][tile[1]] = color1
+    return [prbmat, cmpmat]
 
 
 def update_prox(mat):
@@ -99,58 +102,55 @@ def update_prox(mat):
     return [prox1, prox2, prox3]
 
 
-def choose_loneliest(mat, i, j, prox1, prox2, prox3):
+def choose_loneliest(prbmat, i, j, prox1, prox2, prox3):
     """returns least 'connected' neighbour of tile, or None if all equally connected"""
-    if mat[i][j] == 0:
+    if prbmat[i][j] == 0:
         return None
-    valids = valid_neighbours(mat, i, j)
-    prox1s = [prox1[t[0]][t[1]] for t in valids]
+    valids = valid_neighbours(prbmat, i, j)
+    prox1s = [prox1[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
     if prox1s.count(min(prox1s)) == 1:
-        return {prox1[t[0]][t[1]]:t for t in valids}[min(prox1s)]
+        return {prox1[t[0]][t[1]]:t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox1s)]
     else:
-        prox2s = [prox2[t[0]][t[1]] for t in valids]
+        prox2s = [prox2[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
         if prox2s.count(min(prox2s)) == 1:
-            return {prox2[t[0]][t[1]]: t for t in valids}[min(prox2s)]
+            return {prox2[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox2s)]
         else:
-            prox3s = [prox3[t[0]][t[1]] for t in valids]
+            prox3s = [prox3[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
             if prox3s.count(min(prox3s)) == 1:
-                return {prox3[t[0]][t[1]]: t for t in valids}[min(prox3s)]
+                return {prox3[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox3s)]
             else:
                 return None
+
+
+def link_1s(prbmat, cmpmat):
+    [prox1, prox2, prox3] = update_prox(prbmat)
+    while 1 in [item for sublist in prox1 for item in sublist]:
+        for i1 in range(len(prbmat)):
+            for j1 in range(len(prbmat)):
+                if prox1[i1][j1] == 1:
+                    [i2, j2] = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                    color1, color2 = prbmat[i1][j1], prbmat[i2][j2]
+                    if is_valid_merge(prbmat, color1, color2):
+                        [prbmat, cmpmat] = merge_colors(prbmat, cmpmat, color1, color2)
+                        [prox1, prox2, prox3] = update_prox(prbmat)
+    return [prbmat, cmpmat]
+
 
 def sol(prbmat):
     """groups tiles in 4s"""
     prbmat = assign_colors(prbmat, (a for a in range(1, len(prbmat) ** 2 + 1)))
-    [prox1, prox2, prox3] = update_prox(prbmat)
-    return prbmat
+    cmpmat = [([0] * len(prbmat)) for a in range(len(prbmat))]
+    [prbmat, cmpmat] = link_1s(prbmat, cmpmat)
+    return cmpmat
 
 
 if __name__ == '__main__':
     """testing"""
-    a = [[1,1,1,0],[1,1,0,1],[1,1,1,1],[1,0,0,1]]
-    [b, c, d] = update_prox(a)
-    e = sol(a)
-    [print(i) for i in a]
+    prb = [[1,1,1,0],
+           [1,0,1,0],
+           [1,0,0,0],
+           [1,1,0,0]]
+    [print(i) for i in prb]
     print()
-    [print(i) for i in b]
-    print()
-    [print(i) for i in c]
-    print()
-    [print(i) for i in d]
-    print()
-    [print(i) for i in e]
-    print()
-
-    print(is_valid_merge([[1,1,0],[2,0,0],[0,0,0]], 1, 2))
-    print()
-    [print(i) for i in a]
-    print()
-    [print(f'{i}, {j}: {choose_loneliest(a,i,j,b,c,d)}') for i in range(4) for j in range(4)]
-    print()
-
-    f = [[1,1,3],[0,0,3],[2,2,0]]
-    g = [[0,0,0],[0,0,0],[0,0,0]]
-    [f, g] = merge_colors(f, g, 1, 3)
-    [print(i) for i in f]
-    print()
-    [print(i) for i in g]
+    sol = sol(prb)
+    [print(i) for i in sol]
