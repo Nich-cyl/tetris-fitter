@@ -27,22 +27,6 @@ S2 = ((0, 1), (1, 1), (1, 2))
 blocks = [I0, I1, O1, T1, T2, T3, T4, L1, L2, L3, L4, J1, J2, J3, J4, Z1, Z2, S1, S2]
 
 
-def print_block(entry_no, origin, increment, holding_arr, batch):
-    """prints block.. ig"""
-    global blocks
-    holding_arr.append(pyglet.shapes.Rectangle(origin[0],
-                                               origin[1],
-                                               increment, increment,
-                                               color=(0, 0, 255),
-                                               batch=batch))
-    for tile in blocks[entry_no]:
-        holding_arr.append(pyglet.shapes.Rectangle(origin[0] + tile[0] * increment,
-                                                   origin[1] - tile[1] * increment,
-                                                   increment, increment,
-                                                   color=(0, 0, 255),
-                                                   batch=batch))
-
-
 def gen(size):
     """fills grid length size with tetrominos. increase tried in while cond for fewer blanks."""
     prbmat = [([0] * size) for i in range(size)]
@@ -52,7 +36,7 @@ def gen(size):
         for j in range(size):
             if prbmat[i][j] == 0:
                 tried = 0
-                while tried <= 1:
+                while tried <= 3:
                     test_block = choice(blocks)
                     try:
                         fit = True

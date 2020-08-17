@@ -8,7 +8,7 @@ import solve
 
 win = pyglet.window.Window(960, 540)
 
-grid_batch, tile_batch = pyglet.graphics.Batch(), pyglet.graphics.Batch()
+grid_batch, tile_batch, sol_batch = pyglet.graphics.Batch(), pyglet.graphics.Batch(), pyglet.graphics.Batch()
 
 board_gen, grid, tiles_left, tiles_right = [], [], [], []
 prb, sol, cmp = [], [], []
@@ -27,14 +27,20 @@ def on_key_press(symbol, modifiers):
         tiles_left = display.draw_tiles(sol, tile_batch, True, False)
     elif symbol == key._3:
         cmp = solve.sol(prb)
-        tiles_right = display.draw_tiles(cmp, tile_batch, False, False)
-        print('done')
+        tiles_right = display.draw_tiles(prb, tile_batch, False, True, True)
+        tiles_right.append(display.draw_tiles(cmp, sol_batch, False, False))
+        total = sum([sum(i) for i in prb])
+        got = sum([(1 if i != 0 else 0) for row in cmp for i in row])
+        print(f'Total:    {total}')
+        print(f'Filled:   {got}')
+        print(f'Accuracy: {round(got / total * 100)}%\n')
 
 
 @win.event()
 def on_draw():
     win.clear()
     tile_batch.draw()
+    sol_batch.draw()
     grid_batch.draw()
 
 

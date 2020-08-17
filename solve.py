@@ -32,6 +32,7 @@ def wrapper_for_surrounding(func):
 
 
 def valid_neighbours(mat, i, j):
+    """returns coords of nonzero neighbours on grid"""
     if mat[i][j] == 0: return []
     valids = []
     if i != 0 and mat[i-1][j] != 0: valids.append([i - 1, j])
@@ -56,7 +57,7 @@ def sum_surrounding(mat, i2, j2, i, j, holder, args):
 def neighbour_count(mat, i2, j2, i, j, holder, args):
     """gives number of non-zero neighbours"""
     """takes (mat)"""
-    return holder + (1 if mat[i][j] != 0 and mat[i2][j2] != 0 and mat[i][j] != mat[i2][j2] else 0)
+    return holder + (1 if mat[i][j] != 0 and mat[i2][j2] != 0 and mat[i][j] != mat[i2][j2] and is_valid_merge(mat, mat[i][j], mat[i2][j2]) else 0)
 
 
 @wrapper_for_each_in_grid
@@ -106,33 +107,95 @@ def choose_loneliest(prbmat, i, j, prox1, prox2, prox3):
     """returns least 'connected' neighbour of tile, or None if all equally connected"""
     if prbmat[i][j] == 0:
         return None
-    valids = valid_neighbours(prbmat, i, j)
+    v_maybe = valid_neighbours(prbmat, i, j)
+    valids = [item for item in v_maybe if is_valid_merge(prbmat, prbmat[item[0]][item[1]], prbmat[i][j])]
     prox1s = [prox1[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
-    if prox1s.count(min(prox1s)) == 1:
-        return {prox1[t[0]][t[1]]:t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox1s)]
-    else:
-        prox2s = [prox2[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
-        if prox2s.count(min(prox2s)) == 1:
-            return {prox2[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox2s)]
+    if len(prox1s) > 0:
+        if prox1s.count(min(prox1s)) == 1:
+            return {prox1[t[0]][t[1]]:t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox1s)]
         else:
-            prox3s = [prox3[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
-            if prox3s.count(min(prox3s)) == 1:
-                return {prox3[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox3s)]
+            prox2s = [prox2[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
+            if prox2s.count(min(prox2s)) == 1:
+                return {prox2[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox2s)]
             else:
-                return None
+                prox3s = [prox3[t[0]][t[1]] for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]]
+                if prox3s.count(min(prox3s)) == 1:
+                    return {prox3[t[0]][t[1]]: t for t in valids if prbmat[t[0]][t[1]] != prbmat[i][j]}[min(prox3s)]
+                else:
+                    return None
 
 
 def link_1s(prbmat, cmpmat):
     [prox1, prox2, prox3] = update_prox(prbmat)
-    while 1 in [item for sublist in prox1 for item in sublist]:
+    counter = 0
+    while 1 in [item for sublist in prox1 for item in sublist] and counter < 100:
         for i1 in range(len(prbmat)):
             for j1 in range(len(prbmat)):
-                if prox1[i1][j1] == 1:
-                    [i2, j2] = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                loneliest = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                if prox1[i1][j1] == 1 and loneliest is not None:
+                    [i2, j2] = loneliest
                     color1, color2 = prbmat[i1][j1], prbmat[i2][j2]
                     if is_valid_merge(prbmat, color1, color2):
                         [prbmat, cmpmat] = merge_colors(prbmat, cmpmat, color1, color2)
                         [prox1, prox2, prox3] = update_prox(prbmat)
+        counter += 1
+    return [prbmat, cmpmat]
+
+
+def link_2s(prbmat, cmpmat):
+    [prox1, prox2, prox3] = update_prox(prbmat)
+    counter = 0
+    while 2 in [item for sublist in prox1 for item in sublist] and counter < 100:
+        for i1 in range(len(prbmat)):
+            for j1 in range(len(prbmat)):
+                loneliest = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                if prox1[i1][j1] == 2 and loneliest is not None:
+                    [i2, j2] = loneliest
+                    color1, color2 = prbmat[i1][j1], prbmat[i2][j2]
+                    if is_valid_merge(prbmat, color1, color2):
+                        [prbmat, cmpmat] = merge_colors(prbmat, cmpmat, color1, color2)
+                        [prbmat, cmpmat] = link_1s(prbmat, cmpmat)
+                        [prox1, prox2, prox3] = update_prox(prbmat)
+        counter += 1
+    return [prbmat, cmpmat]
+
+
+def link_3s(prbmat, cmpmat):
+    [prox1, prox2, prox3] = update_prox(prbmat)
+    counter = 0
+    while 3 in [item for sublist in prox1 for item in sublist] and counter < 100:
+        for i1 in range(len(prbmat)):
+            for j1 in range(len(prbmat)):
+                loneliest = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                if prox1[i1][j1] == 3 and loneliest is not None:
+                    [i2, j2] = loneliest
+                    color1, color2 = prbmat[i1][j1], prbmat[i2][j2]
+                    if is_valid_merge(prbmat, color1, color2):
+                        [prbmat, cmpmat] = merge_colors(prbmat, cmpmat, color1, color2)
+                        [prbmat, cmpmat] = link_1s(prbmat, cmpmat)
+                        [prbmat, cmpmat] = link_2s(prbmat, cmpmat)
+                        [prox1, prox2, prox3] = update_prox(prbmat)
+    counter += 1
+    return [prbmat, cmpmat]
+
+
+def link_4s(prbmat, cmpmat):
+    [prox1, prox2, prox3] = update_prox(prbmat)
+    counter = 0
+    while 4 in [item for sublist in prox1 for item in sublist] and counter < 100:
+        for i1 in range(len(prbmat)):
+            for j1 in range(len(prbmat)):
+                loneliest = choose_loneliest(prbmat, i1, j1, prox1, prox2, prox3)
+                if prox1[i1][j1] == 4 and loneliest is not None:
+                    [i2, j2] = loneliest
+                    color1, color2 = prbmat[i1][j1], prbmat[i2][j2]
+                    if is_valid_merge(prbmat, color1, color2):
+                        [prbmat, cmpmat] = merge_colors(prbmat, cmpmat, color1, color2)
+                        [prbmat, cmpmat] = link_1s(prbmat, cmpmat)
+                        [prbmat, cmpmat] = link_2s(prbmat, cmpmat)
+                        [prbmat, cmpmat] = link_3s(prbmat, cmpmat)
+                        [prox1, prox2, prox3] = update_prox(prbmat)
+        counter += 1
     return [prbmat, cmpmat]
 
 
@@ -141,6 +204,9 @@ def sol(prbmat):
     prbmat = assign_colors(prbmat, (a for a in range(1, len(prbmat) ** 2 + 1)))
     cmpmat = [([0] * len(prbmat)) for a in range(len(prbmat))]
     [prbmat, cmpmat] = link_1s(prbmat, cmpmat)
+    [prbmat, cmpmat] = link_2s(prbmat, cmpmat)
+    [prbmat, cmpmat] = link_3s(prbmat, cmpmat)
+    [prbmat, cmpmat] = link_4s(prbmat, cmpmat)
     return cmpmat
 
 
@@ -148,9 +214,19 @@ if __name__ == '__main__':
     """testing"""
     prb = [[1,1,1,0],
            [1,0,1,0],
-           [1,0,0,0],
-           [1,1,0,0]]
+           [1,0,1,0],
+           [0,0,1,0]]
     [print(i) for i in prb]
     print()
-    sol = sol(prb)
-    [print(i) for i in sol]
+    solu = sol(prb)
+    [print(i) for i in solu]
+    print('\n\n')
+
+    prb = [[1, 1, 1, 0],
+           [1, 1, 1, 0],
+           [0, 0, 1, 1],
+           [1, 1, 1, 1]]
+    [print(i) for i in prb]
+    print()
+    solu = sol(prb)
+    [print(i) for i in solu]

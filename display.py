@@ -21,13 +21,13 @@ def draw_grids(grid_length, batch):
     return holder
 
 
-def draw_tiles(mat, batch, is_left, is_unicolor):
+def draw_tiles(mat, batch, is_left, is_unicolor, is_white=False):
     holder = []
     grid_length = len(mat)
     increment = 400 / grid_length
     lbound_x = 40 if is_left else 520
     lbound_y = 470 - increment
-    color = (lambda a: (192,192,192)) if is_unicolor else color_gen
+    color = color_gen if not is_unicolor else (lambda a: (192,192,192)) if not is_white else (lambda a: (255,255,255))
     for y in range(grid_length):
         for x in range(grid_length):
             if mat[y][x] != 0:
