@@ -38,6 +38,41 @@ def wrapper_for_surrounding(func):
 def sum_surrounding(mat, i2, j2, i, j):
     return mat[i2][j2] if mat[i][j] != 0 else 0
 
+
+def is_valid_merge(color_dict, c1, c2):
+    return True if (len(color_dict[c1])+len(color_dict[c2])) <= 4 else False
+
+
+@wrapper_for_surrounding
+def first_neighbours(mat, i2, j2, i, j):
+    return 1 if mat[i2][j2] != 0 and mat[i][j] != 0 else 0
+
+
+@wrapper_for_surrounding
+def second_neighbours(mat, i2, j2, i, j):
+    return first_neighbours(mat, i2, j2) if mat[i2][j2] != 0 and mat[i][j] != 0 else 0
+
+
+@wrapper_for_surrounding
+def third_neighbours(mat, i2, j2, i, j):
+    return second_neighbours(mat, i2, j2) if mat[i2][j2] != 0 and mat[i][j] != 0 else 0
+
+
+def valid_neighbours(mat, i, j, blacklist):
+    bl = []
+    valids = []
+    if i != 0 and mat[i-1][j] != 0 and [i-1,j] not in bl:
+        valids.append([i-1,j])
+    if j != 0 and mat[i][j-1] != 0 and [i,j-1] not in bl:
+        valids.append([i,j-1])
+    if i != len(mat)-1:
+        if mat[i+1][j] != 0 and [i+1,j] not in bl:
+            valids.append([i+1,j])
+    if j != len(mat)-1:
+        if mat[i][j+1] != 0 and [i,j+1] not in bl:
+            valids.append([i,j+1])
+    return valids
+
 def sol(prbmat):
     dim = len(prbmat)
     cmpmat = [([0]*dim) for i in range(dim)]
@@ -51,11 +86,23 @@ def sol(prbmat):
                 num += 1
             else:
                 cmpmat[i][j] = 0
-    print(color_dict)
+
     return cmpmat
 
 
 if __name__ == '__main__':
-    a = [[1,1,0],[1,0,0],[0,1,1]]
+    a = [[1,1,0,1],[1,1,0,0],[0,1,1,1],[0,0,1,1]]
     b = sol(a)
+    c = [([0]*4) for i in range(4)]
+    d = [([0]*4) for i in range(4)]
+    for i in range(len(a)):
+        for j in range(len(a)):
+            c[i][j] = third_neighbours(a,i,j)
+            d[i][j] = first_neighbours(a,i,j)
     [print(i) for i in b]
+    print()
+    [print(i) for i in c]
+    print()
+    [print(i) for i in d]
+    print()
+    print(valid_neighbours(b,3,1,[]))
