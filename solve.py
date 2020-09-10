@@ -81,6 +81,26 @@ def merge_colors(mat, color_dict, c1, c2):
     color_dict.pop(c2)
 
 
+def loneliest(mat, i, j, blacklist):
+    valids = valid_neighbours(mat, i, j, blacklist)
+    firsts = [first_neighbours(mat, t[0], t[1], blacklist) for t in valids]
+    guess = False
+    if firsts.count(min(firsts)) == 1:
+        for t in valids:
+            if first_neighbours(mat, t[0], t[1], blacklist) == min(firsts):
+                lonely = t
+                break
+    else:
+        seconds = [second_neighbours(mat, t[0], t[1], blacklist) for t in valids]
+        for t in valids:
+            if second_neighbours(mat, t[0], t[1], blacklist) == min(seconds):
+                lonely = t
+                if seconds.count(min(seconds)) != 1:
+                    guess = True
+                    break
+    return [lonely, guess]
+
+
 def sol(prbmat):
     dim = len(prbmat)
     cmpmat = [([0]*dim) for i in range(dim)]
@@ -118,3 +138,5 @@ if __name__ == '__main__':
     [print(i) for i in d]
     print()
     print(valid_neighbours(b,3,1,blacklist))
+    print()
+    print(loneliest(a, 3, 3, blacklist))
