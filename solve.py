@@ -109,7 +109,7 @@ def loneliest(mat, i, j, blacklist, color_dict):
 def check_tile(mat, i, j, color_dict, blacklist, log, threshold, can_guess):
     if first_neighbours(mat, i, j, blacklist, color_dict) <= threshold:
         [l, guess] = loneliest(mat, i, j, blacklist, color_dict)
-        if l != []:
+        if l:
             c1, c2 = mat[i][j], mat[l[0]][l[1]]
             if guess == can_guess and c1 != c2:
                 if guess:
@@ -140,6 +140,17 @@ def check_grid(mat, color_dict, blacklist, log, threshold, can_guess):
                     merged += check_tile(mat, i, j, color_dict, blacklist, log, threshold, can_guess)
 
 
+def is_stuck(mat, color_dict, blacklist):
+    for color in color_dict.keys():
+        if len(color_dict[color]) != 4:
+            valid_count = 0
+            for t in color_dict[color]:
+                valid_count += len(valid_neighbours(mat, t[0], t[1], blacklist, color_dict))
+            if valid_count == 0:
+                return True
+    return False
+
+
 def sol(prbmat):
     dim = len(prbmat)
     cmpmat = [([0]*dim) for i in range(dim)]
@@ -157,8 +168,18 @@ def sol(prbmat):
                 cmpmat[i][j] = 0
             blacklist[i, j] = []
     check_grid(cmpmat, color_dict, blacklist, log, 1, False)
+    """TESTING"""
+    check_grid(cmpmat, color_dict, blacklist, log, 2, False)
+    check_grid(cmpmat, color_dict, blacklist, log, 2, True)
+    check_grid(cmpmat, color_dict, blacklist, log, 2, False)
+    check_grid(cmpmat, color_dict, blacklist, log, 1, False)
     [print(i) for c in log for i in c]
     print()
+    cmpmat[3][0] = 11
+    color_dict[11] = [[3,0]]
+    blacklist[3,0] = []
+    print(is_stuck(cmpmat, color_dict, blacklist))
+
     return cmpmat
 
 
