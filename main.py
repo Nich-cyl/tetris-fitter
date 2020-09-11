@@ -4,6 +4,7 @@ import pyglet
 from pyglet.window import key
 import generate
 import display
+import solve
 
 win = pyglet.window.Window(960, 540)
 
@@ -25,8 +26,12 @@ def on_key_press(symbol, modifiers):
     elif symbol == key._2:
         tiles_left = display.draw_tiles(sol, tile_batch, True, False)
     elif symbol == key._3:
-        pass
-        """do solvey stuff"""
+        [print(i) for i in prb]
+        print()
+        cmp = solve.sol(prb)
+        [print(i) for i in cmp]
+        print('\n\n')
+        tiles_right = display.draw_tiles(cmp, tile_batch, False, False)
 
 
 @win.event()
