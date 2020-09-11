@@ -113,9 +113,9 @@ def check_tile(mat, i, j, color_dict, blacklist, log, threshold, can_guess):
             c1, c2 = mat[i][j], mat[l[0]][l[1]]
             if guess == can_guess and c1 != c2:
                 if guess:
-                    log.insert(0,[[c1, c2, color_dict[c1], color_dict[c2]]])
+                    log.insert(0,[[c2, color_dict[c2].copy(), [i,j], l.copy()]])
                 else:
-                    log[0].insert(0,[c2, color_dict[c2]])
+                    log[0].insert(0,[c2, color_dict[c2].copy()])
                 merge_colors(mat, color_dict, c1, c2)
                 blacklist[i,j].append(l)
                 blacklist[l[0],l[1]].append([i,j])
@@ -151,6 +151,30 @@ def is_stuck(mat, color_dict, blacklist):
     return False
 
 
+def is_complete(mat, color_dict, blacklist):
+    for color in color_dict.keys():
+        if len(color_dict[color]) != 4:
+            return False
+    return True
+
+
+def rollback(mat, color_dict, blacklist, log):
+    while len(log[0]) > 0:
+        color = log[0][0][0]
+        color_dict[color] = []
+        for t in log[0][0][1]:
+            color_dict[mat[t[0]][t[1]]].remove(t)
+            color_dict[color].append(t)
+            mat[t[0]][t[1]] = color
+        if len(log[0]) == 1:
+            break
+        log[0].pop(0)
+    if len(log[0]) == 4:
+        blacklist[tuple(log[0][0][3])].append(log[0][0][2])
+        blacklist[tuple(log[0][0][2])].append(log[0][0][3])
+    log.pop(0)
+
+
 def sol(prbmat):
     dim = len(prbmat)
     cmpmat = [([0]*dim) for i in range(dim)]
@@ -175,11 +199,13 @@ def sol(prbmat):
     check_grid(cmpmat, color_dict, blacklist, log, 1, False)
     [print(i) for c in log for i in c]
     print()
-    cmpmat[3][0] = 11
-    color_dict[11] = [[3,0]]
-    blacklist[3,0] = []
-    print(is_stuck(cmpmat, color_dict, blacklist))
-
+    [print(i) for i in cmpmat]
+    print()
+    rollback(cmpmat, color_dict, blacklist, log)
+    [print(i) for i in cmpmat]
+    print()
+    rollback(cmpmat, color_dict, blacklist, log)
+    [print(i) for i in cmpmat]
     return cmpmat
 
 
@@ -189,6 +215,7 @@ if __name__ == '__main__':
          [0,1,1,1],
          [0,1,1,1]]
     b = sol(a)
+    print()
     [print(i) for i in b]
     print()
 
